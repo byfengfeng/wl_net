@@ -2,17 +2,17 @@ package net
 
 import (
 	"fmt"
+	"github.com/Byfengfeng/wl_net/conn"
+	"github.com/Byfengfeng/wl_net/enum"
+	"github.com/Byfengfeng/wl_net/event"
+	"github.com/Byfengfeng/wl_net/inter"
+	"github.com/Byfengfeng/wl_net/listen/tcp"
+	"github.com/Byfengfeng/wl_net/listen/udp"
+	"github.com/Byfengfeng/wl_net/listen/web_socket"
+	"github.com/Byfengfeng/wl_net/log"
+	"github.com/Byfengfeng/wl_net/pool"
 	"github.com/panjf2000/ants/v2"
 	"net"
-	"wl_net/conn"
-	"wl_net/enum"
-	"wl_net/event"
-	"wl_net/inter"
-	"wl_net/listen/tcp"
-	"wl_net/listen/udp"
-	"wl_net/listen/web_socket"
-	"wl_net/log"
-	"wl_net/pool"
 )
 
 type EventConnLoop struct {

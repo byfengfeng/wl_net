@@ -2,12 +2,12 @@ package listen
 
 import (
 	"fmt"
+	"github.com/Byfengfeng/wl_net/enum"
+	"github.com/Byfengfeng/wl_net/log"
 	"go.uber.org/zap"
 	"golang.org/x/net/websocket"
 	"net"
 	"time"
-	"wl_net/enum"
-	"wl_net/log"
 )
 
 func Dial(netType enum.NetType, addr string) (conn net.Conn) {

@@ -2,13 +2,13 @@ package net
 
 import (
 	"fmt"
+	"github.com/Byfengfeng/wl_net/conn"
+	"github.com/Byfengfeng/wl_net/enum"
+	"github.com/Byfengfeng/wl_net/event"
+	"github.com/Byfengfeng/wl_net/inter"
+	"github.com/Byfengfeng/wl_net/listen"
+	"github.com/Byfengfeng/wl_net/pool"
 	"net"
-	"wl_net/conn"
-	"wl_net/enum"
-	"wl_net/event"
-	"wl_net/inter"
-	"wl_net/listen"
-	"wl_net/pool"
 )
 
 type EventDialLoop struct {

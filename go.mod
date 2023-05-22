@@ -1,4 +1,4 @@
-module wl_net
+module github.com/Byfengfeng/wl_net
 
 go 1.19
 

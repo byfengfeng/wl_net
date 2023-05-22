@@ -1,9 +1,9 @@
 package conn
 
 import (
+	"github.com/Byfengfeng/wl_net/inter"
 	"net"
 	"sync"
-	"wl_net/inter"
 )
 
 var (

@@ -1,9 +1,9 @@
 package tcp
 
 import (
+	"github.com/Byfengfeng/wl_net/log"
 	"go.uber.org/zap"
 	"net"
-	"wl_net/log"
 )
 
 type ListenTcp struct {

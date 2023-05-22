@@ -1,11 +1,11 @@
 package web_socket
 
 import (
+	"github.com/Byfengfeng/wl_net/log"
 	"go.uber.org/zap"
 	"golang.org/x/net/websocket"
 	"net"
 	"net/http"
-	"wl_net/log"
 )
 
 type WebSocketListen struct {

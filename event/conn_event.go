@@ -1,8 +1,8 @@
 package event
 
 import (
-	"wl_net/inter"
-	"wl_net/pool"
+	"github.com/Byfengfeng/wl_net/inter"
+	"github.com/Byfengfeng/wl_net/pool"
 )
 
 var (

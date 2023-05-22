@@ -2,12 +2,12 @@ package net
 
 import (
 	"fmt"
+	"github.com/Byfengfeng/wl_net/enum"
+	"github.com/Byfengfeng/wl_net/inter"
+	"github.com/Byfengfeng/wl_net/log"
 	"net"
 	"testing"
 	"time"
-	"wl_net/enum"
-	"wl_net/inter"
-	"wl_net/log"
 )
 
 type Server struct {

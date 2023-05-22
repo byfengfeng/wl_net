@@ -2,14 +2,14 @@ package conn
 
 import (
 	"fmt"
+	"github.com/Byfengfeng/wl_net/enum"
+	"github.com/Byfengfeng/wl_net/event"
+	"github.com/Byfengfeng/wl_net/inter"
+	"github.com/Byfengfeng/wl_net/log"
+	"github.com/Byfengfeng/wl_net/pool"
 	"go.uber.org/zap"
 	"io"
 	"net"
-	"wl_net/enum"
-	"wl_net/event"
-	"wl_net/inter"
-	"wl_net/log"
-	"wl_net/pool"
 )
 
 type Conn struct {
