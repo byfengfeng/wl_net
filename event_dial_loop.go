@@ -8,6 +8,7 @@ import (
 	"github.com/Byfengfeng/wl_net/inter"
 	"github.com/Byfengfeng/wl_net/listen"
 	"github.com/Byfengfeng/wl_net/pool"
+	"github.com/Byfengfeng/wl_net/snowflake"
 	"net"
 )
 
@@ -22,7 +23,11 @@ type EventDialLoop struct {
 	codec       inter.Codec
 }
 
-func NewEventDialLoop(addr string, port int32, netType enum.NetType, ev inter.EventDialHandler) *EventDialLoop {
+func NewEventDialLoop(addr string, port int32, netType enum.NetType, ev inter.EventDialHandler, nodeId uint16) *EventDialLoop {
+	if nodeId == 0 || nodeId > 1024 {
+		panic("nodeId cap max")
+	}
+	snowflake.SetSnowflakeRegionNodeId(int64(nodeId))
 	return &EventDialLoop{
 		addr:        fmt.Sprintf("%s:%d", addr, port),
 		eventConnFn: ev,

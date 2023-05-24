@@ -37,6 +37,11 @@ func NewServer() inter.EventConnHandler {
 type Client struct {
 }
 
+func (c Client) Async(data []byte) {
+	//TODO implement me
+	panic("implement me")
+}
+
 //260 306 80000 1分钟
 //接收问题 发送问题 3G内存，内存问题
 
@@ -109,7 +114,7 @@ func TestNewConnEventLoop(t *testing.T) {
 			}
 		}
 	}()
-	eventLoop := NewConnEventLoop("", 9998, NewServer(), enum.Tcp)
+	eventLoop := NewConnEventLoop("", 9998, NewServer(), enum.Tcp, 1)
 	eventLoop.WithDecodeLength(36)
 	eventLoop.Run()
 }
@@ -118,7 +123,7 @@ func TestNewEventDialLoop(t *testing.T) {
 	//dialLoop := NewEventDialLoop("", 9998, enum.Tcp, NewClient())
 	//dialLoop := NewEventDialLoop("", 9998, enum.Udp, NewClient())
 	for i := 0; i < 5; i++ {
-		dialLoop := NewEventDialLoop("", 9998, enum.Tcp, NewClient())
+		dialLoop := NewEventDialLoop("", 9998, enum.Tcp, NewClient(), 2)
 		go dialLoop.Run()
 	}
 

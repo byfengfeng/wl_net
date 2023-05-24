@@ -7,6 +7,7 @@ import (
 	"github.com/Byfengfeng/wl_net/inter"
 	"github.com/Byfengfeng/wl_net/log"
 	"github.com/Byfengfeng/wl_net/pool"
+	"github.com/Byfengfeng/wl_net/snowflake"
 	"go.uber.org/zap"
 	"io"
 	"net"
@@ -20,8 +21,8 @@ type Conn struct {
 	closeReadChan chan struct{}
 	connType      enum.ConnType
 	network       enum.NetType
+	id            int64
 	inter.Codec
-	headSize uint8
 }
 
 var (
@@ -34,6 +35,7 @@ func NewConn(ch chan<- any, oCh <-chan struct{}, conn net.Conn, codec inter.Code
 	connect := connPool.Get().(*Conn)
 	connect.conn = conn
 	connect.ch = ch
+	connect.id = snowflake.GenSnowflakeRegionNodeId()
 	connect.oCh = oCh
 	connect.writeCh = make(chan []byte)
 	connect.closeReadChan = make(chan struct{})
@@ -148,6 +150,10 @@ func (c *Conn) AsyncWrite(bytes []byte) {
 	if c.connType == enum.Ready {
 		c.writeCh <- bytes
 	}
+}
+
+func (c *Conn) ConnId() int64 {
+	return c.id
 }
 
 func (c *Conn) Action(event any) {

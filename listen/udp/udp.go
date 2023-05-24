@@ -21,6 +21,7 @@ type AddrConn struct {
 	ctx           context.Context
 	cancelFunc    context.CancelFunc
 	ch            chan<- any
+	subCh         chan<- any
 	oCh           <-chan struct{}
 	writeCh       chan *AddrMsg
 	Id            uint64
@@ -34,14 +35,15 @@ type AddrMsg struct {
 	Bytes []byte
 }
 
-func NewUcpListen(addr string, ch chan<- any, oCh <-chan struct{}, codec inter.Codec) *ListenUdp {
-	return &ListenUdp{address: addr, AddrConn: NewAddrConn(ch, oCh, nil, codec)}
+func NewUcpListen(addr string, ch, subCh chan<- any, oCh <-chan struct{}, codec inter.Codec) *ListenUdp {
+	return &ListenUdp{address: addr, AddrConn: NewAddrConn(ch, subCh, oCh, nil, codec)}
 }
 
-func NewAddrConn(ch chan<- any, oCh <-chan struct{}, conn *net.UDPConn, codec inter.Codec) *AddrConn {
+func NewAddrConn(ch, subCh chan<- any, oCh <-chan struct{}, conn *net.UDPConn, codec inter.Codec) *AddrConn {
 	return &AddrConn{
 		conn:          conn,
 		ch:            ch,
+		subCh:         subCh,
 		oCh:           oCh,
 		writeCh:       make(chan *AddrMsg),
 		closeReadChan: make(chan struct{}),
@@ -82,7 +84,7 @@ func (a *AddrConn) read() {
 		default:
 			_, udpAddr, err := a.conn.ReadFrom(headLen)
 			if err != nil {
-				a.ch <- event.NewErrConnEvent(conn.DelAddr(udpAddr), true)
+				a.subCh <- event.NewErrConnEvent(conn.DelAddr(udpAddr), true)
 				continue
 			}
 
@@ -95,7 +97,7 @@ func (a *AddrConn) read() {
 			if b {
 				a.ch <- connect
 			}
-			a.ch <- event.NewConnMsgEvent(connect, data)
+			a.subCh <- event.NewConnMsgEvent(connect, data)
 		}
 	}
 }
@@ -108,7 +110,7 @@ func (a *AddrConn) write() {
 		case msg := <-a.writeCh:
 			_, err := a.conn.WriteTo(msg.Bytes, msg.Addr)
 			if err != nil {
-				a.ch <- event.NewErrConnEvent(conn.DelAddr(msg.Addr), true)
+				a.subCh <- event.NewErrConnEvent(conn.DelAddr(msg.Addr), true)
 			}
 		}
 	}
@@ -117,8 +119,4 @@ func (a *AddrConn) write() {
 
 func (a *AddrConn) AsyncUdpWrite(addr net.Addr, bytes []byte) {
 	a.writeCh <- &AddrMsg{addr, bytes}
-}
-
-func (a *AddrConn) Action(event any) {
-	a.ch <- event
 }

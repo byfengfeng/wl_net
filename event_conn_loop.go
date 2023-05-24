@@ -11,6 +11,7 @@ import (
 	"github.com/Byfengfeng/wl_net/listen/web_socket"
 	"github.com/Byfengfeng/wl_net/log"
 	"github.com/Byfengfeng/wl_net/pool"
+	"github.com/Byfengfeng/wl_net/snowflake"
 	"github.com/panjf2000/ants/v2"
 	"net"
 )
@@ -19,6 +20,7 @@ type EventConnLoop struct {
 	addr        string
 	connCount   int32
 	ch          chan any
+	subCh       chan any
 	evCh        chan struct{}
 	conn        inter.Conn
 	eventConnFn inter.EventConnHandler
@@ -27,7 +29,11 @@ type EventConnLoop struct {
 	netType enum.NetType
 }
 
-func NewConnEventLoop(addr string, port int32, ev inter.EventConnHandler, netWork enum.NetType) *EventConnLoop {
+func NewConnEventLoop(addr string, port int32, ev inter.EventConnHandler, netWork enum.NetType, nodeId uint16) *EventConnLoop {
+	if nodeId == 0 || nodeId > 1024 {
+		panic("nodeId cap max")
+	}
+	snowflake.SetSnowflakeRegionNodeId(int64(nodeId))
 	gPool, err := ants.NewPool(10)
 	if err != nil {
 		panic(err)
@@ -36,8 +42,9 @@ func NewConnEventLoop(addr string, port int32, ev inter.EventConnHandler, netWor
 		addr:        fmt.Sprintf("%s:%d", addr, port),
 		eventConnFn: ev,
 		codec:       pool.NewCodec(),
-		ch:          make(chan any, 1),
-		evCh:        make(chan struct{}, 1),
+		ch:          make(chan any),
+		subCh:       make(chan any),
+		evCh:        make(chan struct{}),
 		netType:     netWork,
 		Pool:        gPool,
 	}
@@ -57,7 +64,7 @@ func (e *EventConnLoop) Run() {
 	} else if e.netType == enum.WebSocket {
 		web_socket.NewWebSocketListen(e.addr, e.accept).Start()
 	} else if e.netType == enum.Udp {
-		udp.NewUcpListen(e.addr, e.ch, e.evCh, e.codec).Start()
+		udp.NewUcpListen(e.addr, e.ch, e.subCh, e.evCh, e.codec).Start()
 	}
 	go e.SubMsgHandel()
 	e.evLoop()
@@ -90,7 +97,7 @@ func (e *EventConnLoop) SubMsgHandel() {
 		case <-e.evCh:
 			log.Info("SubMsgHandel close")
 			return
-		case message := <-e.ch:
+		case message := <-e.subCh:
 			switch msg := message.(type) {
 			case *event.ConnMsgEvent:
 				e.Submit(func() {
@@ -108,7 +115,7 @@ func (e *EventConnLoop) SubMsgHandel() {
 }
 
 func (e *EventConnLoop) accept(stdConn net.Conn) {
-	connect := conn.NewConn(e.ch, e.evCh, stdConn, e.codec, e.netType)
+	connect := conn.NewConn(e.subCh, e.evCh, stdConn, e.codec, e.netType)
 	e.ch <- connect
 	connect.Listen()
 }
