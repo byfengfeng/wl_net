@@ -11,7 +11,6 @@ import (
 	"github.com/Byfengfeng/wl_net/listen/web_socket"
 	"github.com/Byfengfeng/wl_net/log"
 	"github.com/Byfengfeng/wl_net/pool"
-	"github.com/Byfengfeng/wl_net/snowflake"
 	"github.com/panjf2000/ants/v2"
 	"net"
 )
@@ -33,7 +32,6 @@ func NewConnEventLoop(addr string, port int32, ev inter.EventConnHandler, netWor
 	if nodeId == 0 || nodeId > 1024 {
 		panic("nodeId cap max")
 	}
-	snowflake.SetSnowflakeRegionNodeId(int64(nodeId))
 	gPool, err := ants.NewPool(10)
 	if err != nil {
 		panic(err)

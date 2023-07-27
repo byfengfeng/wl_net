@@ -8,7 +8,6 @@ import (
 	"github.com/Byfengfeng/wl_net/inter"
 	"github.com/Byfengfeng/wl_net/listen"
 	"github.com/Byfengfeng/wl_net/pool"
-	"github.com/Byfengfeng/wl_net/snowflake"
 	"net"
 )
 
@@ -27,7 +26,6 @@ func NewEventDialLoop(addr string, port int32, netType enum.NetType, ev inter.Ev
 	if nodeId == 0 || nodeId > 1024 {
 		panic("nodeId cap max")
 	}
-	snowflake.SetSnowflakeRegionNodeId(int64(nodeId))
 	return &EventDialLoop{
 		addr:        fmt.Sprintf("%s:%d", addr, port),
 		eventConnFn: ev,
@@ -47,15 +45,15 @@ func (e *EventDialLoop) evLoop() {
 	for {
 		select {
 		case message := <-e.ch:
-			switch event := message.(type) {
+			switch ev := message.(type) {
 			case *event.ErrConnEvent:
-				e.deleteConn(event.Conn)
+				e.deleteConn(ev.Conn)
 				return
 			case *conn.Conn:
-				e.addConn(event)
+				e.addConn(ev)
 			case *event.ConnMsgEvent:
-				e.eventConnFn.DialReact(event.Conn, event.Data)
-				e.PutConnMsgEvent(event)
+				e.eventConnFn.DialReact(ev.Conn, ev.Data)
+				e.PutConnMsgEvent(ev)
 			}
 		}
 	}

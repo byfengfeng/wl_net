@@ -2,14 +2,19 @@ package conn
 
 import (
 	"github.com/Byfengfeng/wl_net/inter"
-	"github.com/Byfengfeng/wl_net/snowflake"
 	"net"
 	"sync"
+	"sync/atomic"
 )
 
 var (
 	addrMap = sync.Map{}
+	addrId  int64
 )
+
+func getAddrIdId() int64 {
+	return atomic.AddInt64(&addrId, 1)
+}
 
 type addr struct {
 	id         int64
@@ -42,7 +47,7 @@ func DelAddr(remote net.Addr) inter.Conn {
 }
 
 func newAddr(local, remote net.Addr, codec inter.Codec, handler func(addr net.Addr, data []byte)) inter.Conn {
-	return &addr{snowflake.GenSnowflakeRegionNodeId(), local, remote, codec, handler}
+	return &addr{getAddrIdId(), local, remote, codec, handler}
 }
 
 func (a *addr) Close() {

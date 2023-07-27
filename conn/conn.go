@@ -7,10 +7,14 @@ import (
 	"github.com/Byfengfeng/wl_net/inter"
 	"github.com/Byfengfeng/wl_net/log"
 	"github.com/Byfengfeng/wl_net/pool"
-	"github.com/Byfengfeng/wl_net/snowflake"
 	"go.uber.org/zap"
 	"io"
 	"net"
+	"sync/atomic"
+)
+
+var (
+	id int64
 )
 
 type Conn struct {
@@ -35,7 +39,7 @@ func NewConn(ch chan<- any, oCh <-chan struct{}, conn net.Conn, codec inter.Code
 	connect := connPool.Get().(*Conn)
 	connect.conn = conn
 	connect.ch = ch
-	connect.id = snowflake.GenSnowflakeRegionNodeId()
+	connect.id = getId()
 	connect.oCh = oCh
 	connect.writeCh = make(chan []byte)
 	connect.closeReadChan = make(chan struct{})
@@ -160,4 +164,8 @@ func (c *Conn) Action(event any) {
 	if c.connType != enum.Close {
 		c.ch <- event
 	}
+}
+
+func getId() int64 {
+	return atomic.AddInt64(&id, 1)
 }
