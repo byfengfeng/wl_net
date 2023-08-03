@@ -7,8 +7,8 @@ import (
 	"github.com/Byfengfeng/wl_net/inter"
 	"github.com/Byfengfeng/wl_net/log"
 	"github.com/Byfengfeng/wl_net/pool"
+	"github.com/byfengfeng/ring_buf"
 	"go.uber.org/zap"
-	"io"
 	"net"
 	"sync/atomic"
 )
@@ -25,6 +25,7 @@ type Conn struct {
 	closeReadChan chan struct{}
 	connType      enum.ConnType
 	network       enum.NetType
+	ringBuff      ring_buf.RingBuf
 	id            int64
 	inter.Codec
 }
@@ -46,6 +47,7 @@ func NewConn(ch chan<- any, oCh <-chan struct{}, conn net.Conn, codec inter.Code
 	connect.connType = enum.Ready
 	connect.network = network
 	connect.Codec = codec
+	connect.ringBuff = ring_buf.NewRingBuff()
 	return connect
 }
 
@@ -71,7 +73,26 @@ func (c *Conn) RemoteAddr() net.Addr {
 }
 
 func (c *Conn) read() {
-	headLen := make([]byte, enum.HeadSize)
+	go func() {
+		for {
+			headLen := make([]byte, enum.HeadSize)
+			_, err := c.conn.Read(headLen)
+			if err != nil {
+				c.Action(event.NewErrConnEvent(c, true))
+				return
+			}
+			length, data := c.Decode(headLen)
+			if length > uint32(enum.HeadSize) {
+				_, err = c.conn.Read(data)
+				if err != nil {
+					c.Action(event.NewErrConnEvent(c, true))
+					return
+				}
+				c.ringBuff.Write(data)
+			}
+		}
+
+	}()
 	for {
 		select {
 		case <-c.closeReadChan:
@@ -79,18 +100,8 @@ func (c *Conn) read() {
 		case <-c.oCh:
 			return
 		default:
-			_, err := io.ReadFull(c.conn, headLen)
-			if err != nil {
-				c.Action(event.NewErrConnEvent(c, true))
-				return
-			}
-			length, data := c.Decode(headLen)
-			if length > uint32(enum.HeadSize) {
-				_, err = io.ReadFull(c.conn, data)
-				if err != nil {
-					c.Action(event.NewErrConnEvent(c, true))
-					return
-				}
+			data := c.ringBuff.Read()
+			if len(data) > 0 {
 				c.Action(event.NewConnMsgEvent(c, data))
 			}
 		}
@@ -138,6 +149,9 @@ func (c *Conn) write() {
 }
 
 func (c *Conn) Close() {
+	if c.connType == enum.Close {
+		return
+	}
 	c.connType = enum.Close
 	err := c.conn.Close()
 	if err != nil {

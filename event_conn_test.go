@@ -116,7 +116,7 @@ func TestNewConnEventLoop(t *testing.T) {
 	//		}
 	//	}
 	//}()
-	eventLoop := NewConnEventLoop("", 9998, NewServer(), enum.Tcp, 1)
+	eventLoop := NewConnEventLoop("", 9998, NewServer(), enum.WebSocket, 1)
 	//eventLoop.WithDecodeLength(2)
 	eventLoop.Run()
 }
@@ -149,18 +149,27 @@ func ChineseCount(str1 string) (count int) {
 
 func TestNewEventDialLoop1(t *testing.T) {
 	fmt.Println(ChineseCount("Hello你好WorldGo语言真强"))
-	dialLoop := NewEventDialLoop("", 9998, enum.Tcp, NewClient(), 3)
-	//dialLoop := NewEventDialLoop("", 9998, enum.Udp, NewClient())
-	//dialLoop := NewEventDialLoop("", 9998, enum.WebSocket, NewClient())
-	dialLoop.Run()
+	for j := 0; j < 10; j++ {
+		go func() {
+			dialLoop := NewEventDialLoop("", 9998, enum.WebSocket, NewClient(), 3)
+			//dialLoop := NewEventDialLoop("", 9998, enum.Udp, NewClient())
+			//dialLoop := NewEventDialLoop("", 9998, enum.WebSocket, NewClient())
+			go dialLoop.Run()
 
-	//dial, err := net.Dial("tcp", ":9998")
-	//if err != nil {
-	//	panic(err)
-	//}
-	for i := 0; i < 10000; i++ {
-		dialLoop.Send([]byte("123"))
+			//dial, err := net.Dial("tcp", ":9998")
+			//if err != nil {
+			//	panic(err)
+			//}
+			time.Sleep(time.Second)
+			for i := 0; i < 10000; i++ {
+				time.Sleep(time.Nanosecond * 2)
+				dialLoop.Send([]byte("123456789"))
+				//fmt.Println(i)
+			}
+		}()
+
 	}
+
 	time.Sleep(10 * time.Minute)
 }
 
