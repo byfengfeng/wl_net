@@ -9,22 +9,22 @@ import (
 
 var (
 	addrMap = sync.Map{}
-	addrId  int64
+	addrId  uint64
 )
 
-func getAddrIdId() int64 {
-	return atomic.AddInt64(&addrId, 1)
+func getAddrIdId() uint64 {
+	return atomic.AddUint64(&addrId, 1)
 }
 
 type addr struct {
-	id         int64
+	id         uint64
 	localAddr  net.Addr
 	remoteAddr net.Addr
 	inter.Codec
 	handler func(addr net.Addr, data []byte)
 }
 
-func (a *addr) ConnId() int64 {
+func (a *addr) ConnId() uint64 {
 	return a.id
 }
 
@@ -66,4 +66,8 @@ func (a *addr) RemoteAddr() net.Addr {
 
 func (a *addr) AsyncWrite(bytes []byte) {
 	a.handler(a.remoteAddr, a.Encode(bytes))
+}
+
+func (a *addr) SetId(id uint64) {
+	a.id = id
 }

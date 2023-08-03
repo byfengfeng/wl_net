@@ -14,7 +14,7 @@ import (
 )
 
 var (
-	id int64
+	id uint64
 )
 
 type Conn struct {
@@ -26,7 +26,7 @@ type Conn struct {
 	connType      enum.ConnType
 	network       enum.NetType
 	ringBuff      ring_buf.RingBuf
-	id            int64
+	id            uint64
 	inter.Codec
 }
 
@@ -170,7 +170,7 @@ func (c *Conn) AsyncWrite(bytes []byte) {
 	}
 }
 
-func (c *Conn) ConnId() int64 {
+func (c *Conn) ConnId() uint64 {
 	return c.id
 }
 
@@ -180,6 +180,10 @@ func (c *Conn) Action(event any) {
 	}
 }
 
-func getId() int64 {
-	return atomic.AddInt64(&id, 1)
+func (c *Conn) SetId(id uint64) {
+	c.id = id
+}
+
+func getId() uint64 {
+	return atomic.AddUint64(&id, 1)
 }

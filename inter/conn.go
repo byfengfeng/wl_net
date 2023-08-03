@@ -9,6 +9,7 @@ type Conn interface {
 	Listen()
 	LocalAddr() net.Addr
 	RemoteAddr() net.Addr
-	ConnId() int64
+	SetId(id uint64)
+	ConnId() uint64
 	AsyncWrite(bytes []byte)
 }
